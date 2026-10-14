@@ -129,13 +129,3 @@ fun Contenido(
 fun ScreenInicio() {
     Text("INICIO")
 }
-
-@Composable
-fun ScreenPosts(navController: NavHostController, servicio: PostApiService) {
-    Text("Pantalla de Posts")
-}
-
-@Composable
-fun ScreenPost(navController: NavHostController, servicio: PostApiService, id: Int) {
-    Text("Ver Post $id")
-}
