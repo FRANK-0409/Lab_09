@@ -29,10 +29,15 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun ScreenPosts(navController: NavHostController, servicio: PostApiService) {
-    var listaPosts: SnapshotStateList<PostModel> = remember { mutableStateListOf() }
+    val listaPosts: SnapshotStateList<PostModel> = remember { mutableStateListOf() }
     LaunchedEffect(Unit) {
-        val listado = servicio.getUserPosts()
-        listado.forEach { listaPosts.add(it) }
+        try {
+            val listado = servicio.getUserPosts()
+            listaPosts.clear()
+            listado.forEach { listaPosts.add(it) }
+        } catch (e: Exception) {
+            Log.e("POSTS", "Error al obtener posts: ${e.message}", e)
+        }
     }
 
     LazyColumn {
@@ -58,9 +63,13 @@ fun ScreenPosts(navController: NavHostController, servicio: PostApiService) {
 @Composable
 fun ScreenPost(navController: NavHostController, servicio: PostApiService, id: Int) {
     var post by remember { mutableStateOf<PostModel?>(null) }
-    LaunchedEffect(Unit) {
-        val xpost = servicio.getUserPostById(id)
-        post = xpost.copy().takeIf { xpost.body != null }
+    LaunchedEffect(id) {
+        try {
+            val xpost = servicio.getUserPostById(id)
+            post = xpost.copy().takeIf { xpost.body != null } ?: xpost
+        } catch (e: Exception) {
+            Log.e("POSTS", "Error al obtener post $id: ${e.message}", e)
+        }
     }
     Column(
         Modifier
@@ -68,26 +77,27 @@ fun ScreenPost(navController: NavHostController, servicio: PostApiService, id: I
             .fillMaxSize()
     ) {
         if (post != null) {
+            val p = post!!
             OutlinedTextField(
-                value = post!!.id.toString(),
+                value = p.id.toString(),
                 onValueChange = {},
                 label = { Text("id") },
                 readOnly = true
             )
             OutlinedTextField(
-                value = post!!.userId.toString(),
+                value = p.userId.toString(),
                 onValueChange = {},
                 label = { Text("userId") },
                 readOnly = true
             )
             OutlinedTextField(
-                value = post!!.title.toString(),
+                value = p.title,
                 onValueChange = {},
                 label = { Text("title") },
                 readOnly = true
             )
             OutlinedTextField(
-                value = post!!.body.toString(),
+                value = p.body,
                 onValueChange = {},
                 label = { Text("body") },
                 readOnly = true
