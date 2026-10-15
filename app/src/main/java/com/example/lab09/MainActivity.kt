@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,12 +55,17 @@ fun ProgPrincipal9() {
     val retrofit = Retrofit.Builder().baseUrl(urlBase)
         .addConverterFactory(GsonConverterFactory.create()).build()
     val servicio = retrofit.create(PostApiService::class.java)
+
+    val retrofitRecipes = Retrofit.Builder().baseUrl("https://dummyjson.com/")
+        .addConverterFactory(GsonConverterFactory.create()).build()
+    val recipeService = retrofitRecipes.create(RecipeApiService::class.java)
+
     val navController = rememberNavController()
 
     Scaffold(
         topBar = { BarraSuperior() },
         bottomBar = { BarraInferior(navController) },
-        content = { paddingValues -> Contenido(paddingValues, navController, servicio) }
+        content = { paddingValues -> Contenido(paddingValues, navController, servicio, recipeService) }
     )
 }
 
@@ -69,7 +75,7 @@ fun BarraSuperior() {
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = "JSONPlaceholder Access",
+                text = "JSONPlaceholder & DummyJSON",
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
@@ -112,6 +118,18 @@ fun BarraInferior(navController: NavHostController) {
                 }
             }
         )
+        NavigationBarItem(
+            icon = { Icon(Icons.Outlined.RestaurantMenu, contentDescription = "Recetas") },
+            label = { Text("Recetas") },
+            selected = currentRoute == "recetas",
+            onClick = {
+                navController.navigate("recetas") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
     }
 }
 
@@ -119,7 +137,8 @@ fun BarraInferior(navController: NavHostController) {
 fun Contenido(
     pv: PaddingValues,
     navController: NavHostController,
-    servicio: PostApiService
+    servicio: PostApiService,
+    recipeService: RecipeApiService
 ) {
     Box(
         modifier = Modifier
@@ -137,6 +156,13 @@ fun Contenido(
                 navArgument("id") { type = NavType.IntType }
             )) {
                 ScreenPost(navController, servicio, it.arguments!!.getInt("id"))
+            }
+
+            composable("recetas") { ScreenRecipes(navController, recipeService) }
+            composable("recetasVer/{id}", arguments = listOf(
+                navArgument("id") { type = NavType.IntType }
+            )) {
+                ScreenRecipeDetail(navController, recipeService, it.arguments!!.getInt("id"))
             }
         }
     }
